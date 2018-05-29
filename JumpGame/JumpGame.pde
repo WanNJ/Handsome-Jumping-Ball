@@ -52,7 +52,6 @@ void draw(){
 
 void mouseClicked() {
   continueGame();
-  ball.reset(stakes[0]);
   ball.jump(4.5, -1.5);
 }
 
@@ -65,8 +64,15 @@ void initGame() {
   ball = new Ball(stakes[0].x, stakes[1].y - r, r);
 }
 
-void continueGame() {  
+void continueGame() {
   stakes[0].set(width/4, height - h, stakes[1].len);
+  
+  if(ball.isOnStake(stakes[1])) {
+    ball.reset(stakes[0], ball.position.x - stakes[1].x);
+  } else {
+    ball.reset(stakes[0], 0);
+  }
+  
   float nextWidth = random(minStakeWidth, maxStakeWidth);
   float nextX = random(width/2 + nextWidth/2, width - nextWidth/2);
   stakes[1].set(nextX, height - h, nextWidth);

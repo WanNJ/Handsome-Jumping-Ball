@@ -30,7 +30,7 @@ class Ball {
   // Check boundaries of window
   void checkWallCollision(Stake stake) {
     if (position.x > width - r || position.x < r || position.y > height || position.y < 0) {
-      this.reset(stake);
+      this.reset(stake, 0);
     } 
   }
 
@@ -42,12 +42,11 @@ class Ball {
      collision and also that ball is within 
      left/rights bounds of stake.*/
     
-    if (deltaY > -r &&
+    if (deltaY >= -r &&
       position.x > stake.x - stake.len/2 &&
-      position.x < stake.x + stake.len/2
-      ) {
+      position.x < stake.x + stake.len/2) {
       if(deltaY >= r)
-        reset(resetStake);
+        reset(resetStake, 0);
       else {
         // Keep the ball from going into ground
         position.y = stake.y - r;
@@ -56,14 +55,22 @@ class Ball {
     }
   }
   
+  boolean isOnStake(Stake stake) {
+    float deltaY = position.y - stake.y;
+    
+    return deltaY >= -r && deltaY < r &&
+      position.x > stake.x - stake.len/2 &&
+      position.x < stake.x + stake.len/2;
+  }
+  
   private void stopMoving() {
     velocity.x = 0;
     velocity.y = 0;
   }
   
-  private void reset(Stake stake) {
+  private void reset(Stake stake, float offset) {
     stopMoving();
-    position.x = stake.x;
+    position.x = stake.x + offset;
     position.y = stake.y - r;
   }
 }
