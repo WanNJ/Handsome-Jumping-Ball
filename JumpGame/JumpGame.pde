@@ -1,9 +1,10 @@
 /**
+ * Awesome Jump Game.
+ * by Jack Wan,
+ * May 29th, 2018.
+ *
+ * Based on Ira Greenberg's Solution in
  * Non-orthogonal Collision with Multiple Ground Segments 
- * by Ira Greenberg. 
- * 
- * Based on Keith Peter's Solution in
- * Foundation Actionscript Animation: Making Things Move!
  */
 
 Ball ball;
