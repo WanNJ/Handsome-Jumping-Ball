@@ -6,7 +6,7 @@
  * Foundation Actionscript Animation: Making Things Move!
  */
 
-Orb orb;
+Ball ball;
 
 // Constant Variables
 int minStakeWidth = 30;
@@ -32,16 +32,16 @@ void draw(){
   fill(0, 15);
   rect(0, 0, width, height);
   
-  //// Move and display the orb
-  //orb.move();
-  orb.display();
-  //// Check walls
-  //orb.checkWallCollision();
 
-  //// Check against all the stake
-  //for (int i = 0; i < segments; i++){
-  //  orb.checkGroundCollision(stakes[i]);
-  //}
+  ball.move();
+  ball.display();
+  // Check walls
+  ball.checkWallCollision(stakes[0]);
+
+  // Check against all the stake
+  for (int i = 0; i < segments; i++){
+    ball.checkStakeCollision(stakes[i], stakes[0]);
+  }
 
   
   // Draw stakes
@@ -52,7 +52,8 @@ void draw(){
 
 void mouseClicked() {
   continueGame();
-  orb.reset(stakes[0]);
+  ball.reset(stakes[0]);
+  ball.jump(4.5, -1.5);
 }
 
 void initGame() {
@@ -61,14 +62,10 @@ void initGame() {
   float x = random(width/2 + w/2, width - w/2);
   stakes[1] = new Stake(x, height - h, w);
   
-  orb = new Orb(stakes[0].x, stakes[1].y - r, r);
+  ball = new Ball(stakes[0].x, stakes[1].y - r, r);
 }
 
-void continueGame() {
-  /* Float value required for segment width (segs)
-   calculations so the ground spans the entire 
-   display window, regardless of segment number. */
-  
+void continueGame() {  
   stakes[0].set(width/4, height - h, stakes[1].len);
   float nextWidth = random(minStakeWidth, maxStakeWidth);
   float nextX = random(width/2 + nextWidth/2, width - nextWidth/2);
