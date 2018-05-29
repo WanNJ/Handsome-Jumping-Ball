@@ -6,7 +6,7 @@ class Orb {
 
   Orb(float x, float y, float r_) {
     position = new PVector(x, y);
-    velocity = new PVector(.5, 0);
+    velocity = new PVector(0, 0);
     r = r_;
   }
 

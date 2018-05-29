@@ -12,6 +12,8 @@ Orb orb;
 int minStakeWidth = 30;
 int maxStakeWidth = 100;
 PVector gravity = new PVector(0, 0.05);
+// Orb radius
+float r = 5;
 // Construct an array of 2 "Stake" objects
 int segments = 2;
 // Relevant to the stake height
@@ -21,8 +23,6 @@ Stake[] stakes = new Stake[segments];
 
 void setup(){
   size(640, 360);
-  // An orb object that will fall and bounce around
-  orb = new Orb(50, 50, 3);
   initGame();
 }
 
@@ -34,7 +34,7 @@ void draw(){
   
   //// Move and display the orb
   //orb.move();
-  //orb.display();
+  orb.display();
   //// Check walls
   //orb.checkWallCollision();
 
@@ -52,6 +52,7 @@ void draw(){
 
 void mouseClicked() {
   continueGame();
+  orb.reset(stakes[0]);
 }
 
 void initGame() {
@@ -59,6 +60,8 @@ void initGame() {
   float w = random(minStakeWidth, maxStakeWidth);
   float x = random(width/2 + w/2, width - w/2);
   stakes[1] = new Stake(x, height - h, w);
+  
+  orb = new Orb(stakes[0].x, stakes[1].y - r, r);
 }
 
 void continueGame() {
