@@ -1,3 +1,7 @@
+# Processing
+**/*.xml
+**/*.properties
+
 # Prerequisites
 *.d
 
