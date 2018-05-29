@@ -3,11 +3,13 @@ class Ball {
   PVector position;
   PVector velocity;
   float r;
+  float prevOffset;
 
   Ball(float x, float y, float r_) {
     position = new PVector(x, y);
     velocity = new PVector(0, 0);
     r = r_;
+    prevOffset = 0;
   }
 
   void jump(float x, float y) {
@@ -30,7 +32,7 @@ class Ball {
   // Check boundaries of window
   void checkWallCollision(Stake stake) {
     if (position.x > width - r || position.x < r || position.y > height || position.y < 0) {
-      this.reset(stake, 0);
+      this.reset(stake);
     } 
   }
 
@@ -46,10 +48,11 @@ class Ball {
       position.x > stake.x - stake.len/2 &&
       position.x < stake.x + stake.len/2) {
       if(deltaY >= r)
-        reset(resetStake, 0);
+        reset(resetStake);
       else {
         // Keep the ball from going into ground
         position.y = stake.y - r;
+        this.prevOffset = position.x - stake.x;
         stopMoving();
       }
     }
@@ -68,9 +71,9 @@ class Ball {
     velocity.y = 0;
   }
   
-  private void reset(Stake stake, float offset) {
+  private void reset(Stake stake) {
     stopMoving();
-    position.x = stake.x + offset;
+    position.x = stake.x + prevOffset;
     position.y = stake.y - r;
   }
 }
