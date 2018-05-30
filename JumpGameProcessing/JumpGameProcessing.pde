@@ -7,6 +7,8 @@
  * Non-orthogonal Collision with Multiple Ground Segments 
  */
 
+import processing.serial.*;
+
 Ball ball;
 
 // Constant Variables
@@ -22,39 +24,60 @@ int h = 60;
 
 Stake[] stakes = new Stake[segments];
 
+// Serial Communication Variables
+Serial myPort;      // Create object from Serial class
+String portMessage; // Data received from the serial port
+
 void setup(){
+  println((Object[])Serial.list());
+  //change the index to match your port.
+  String portName = Serial.list()[3];
+  myPort = new Serial(this, portName, 9600);
+  // Don't generate a serialEvent() unless you get a newline character.
+  myPort.bufferUntil('\n');
+  
   size(640, 360);
   initGame();
 }
 
-void draw(){
+void draw(){  
   // Background
   noStroke();
   fill(0, 15);
   rect(0, 0, width, height);
   
-
   ball.move();
-  ball.display();
-  // Check walls
+  
   ball.checkWallCollision(stakes[0]);
-
   // Check against all the stake
   for (int i = 0; i < segments; i++){
     ball.checkStakeCollision(stakes[i], stakes[0]);
   }
-
-  
+   
+  ball.display();
   // Draw stakes
   for (int i = 0; i < segments; i++){
     stakes[i].display();
   }
+  
+  if(ball.isOnStake(stakes[1])) {
+    continueGame();
+  }
 }
 
-void mouseClicked() {
-  continueGame();
-  ball.jump(random(3, 8), -1.5);
-}
+// Override the method.
+void serialEvent(Serial myPort) {
+    // get the ASCII string:
+    String inString = myPort.readStringUntil('\n');
+
+    if (inString != null) {
+      // Trim off any whitespace:
+      inString = trim(inString);
+      // Convert to an float.
+      float val = float(inString);
+      ball.jump(val, -1.5);
+    }
+  }
 
 void initGame() {
   stakes[0] = new Stake(width/4, height - h, random(minStakeWidth, maxStakeWidth));
