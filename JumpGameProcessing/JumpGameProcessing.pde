@@ -53,12 +53,12 @@ void draw(){
   for (int i = 0; i < segments; i++){
     ball.checkStakeCollision(stakes[i], stakes[0]);
   }
-   
-  ball.display();
+
   // Draw stakes
   for (int i = 0; i < segments; i++){
     stakes[i].display();
   }
+  ball.display();
   
   if(ball.isOnStake(stakes[1])) {
     continueGame();
@@ -67,17 +67,26 @@ void draw(){
 
 // Override the method.
 void serialEvent(Serial myPort) {
-    // get the ASCII string:
+  // get the ASCII string:
+  try {
     String inString = myPort.readStringUntil('\n');
+    println(inString);
+    if(inString == "Sitting still...") {
+      return;
+    }
 
     if (inString != null) {
       // Trim off any whitespace:
       inString = trim(inString);
       // Convert to an float.
       float val = float(inString);
-      ball.jump(val, -1.5);
+      ball.jump(val, -2);
     }
+  }catch(Exception e){
+    println("caught error parsing data:");
+    e.printStackTrace();
   }
+}
 
 void initGame() {
   stakes[0] = new Stake(width/4, height - h, random(minStakeWidth, maxStakeWidth));

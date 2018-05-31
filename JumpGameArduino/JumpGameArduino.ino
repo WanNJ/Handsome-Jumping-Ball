@@ -7,7 +7,7 @@
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-#include "Wire.h"
+  #include "Wire.h"
 #endif
 
 #define LED_PIN 13
@@ -27,6 +27,7 @@ uint8_t fifoBuffer[64]; // FIFO storage buffer
 Quaternion q;           // [w, x, y, z]         quaternion container
 VectorInt16 aa;         // [x, y, z]            accel sensor measurements
 VectorInt16 aaReal;     // [x, y, z]            gravity-free accel sensor measurements
+VectorInt16 aaWorld;    // [x, y, z]            world-frame accel sensor measurements
 VectorFloat gravity;    // [x, y, z]            gravity vector
 
 
@@ -44,11 +45,20 @@ void dmpDataReady() {
 // ================================================================
 
 // Game related parameters
-#define LOOP_NUM 3000
-#define JUMP_THRESHOLD 1
+#define LOOP_NUM 200
+#define ACCEL_THRESHOLD 0.25
+#define MIN_VEL 1
+#define SCALE_FACTOR 12
+
+// IMU related parameters
+#define COUNT_PER_GRAVITY 16384
+#define MAX_ACCEL 3.4641
+#define X_OFFSET 1.2575
+#define Y_OFFSET -1.2088
+#define Z_OFFSET -254.7958
 
 int loopCount = 0;
-float maxParam = 0;
+float maxParam = -1;
 
 void setup() {
   // Set random seed.
@@ -60,6 +70,7 @@ void setup() {
 
 void loop() {
   if (loopCount < LOOP_NUM) {
+    loopCount++;
     // Send Data
     float val = getJumpParam();
     if (val > maxParam)
@@ -67,10 +78,13 @@ void loop() {
     // Wait a while for the analog-to-digital converter to stabilize after the last reading as well the processing game to animate.
     delay(1);
   } else {
-    if (maxParam > JUMP_THRESHOLD)
+    if (maxParam > 0) {
       Serial.println(maxParam, 5);
+    } else {
+      Serial.println("Sitting still...");
+    }
     loopCount = 0;
-    maxParam = 0;
+    maxParam = -1;
   }
 }
 
@@ -88,11 +102,10 @@ void setupIMU() {
   mpu.initialize();
   devStatus = mpu.dmpInitialize();
 
-  // supply your own gyro offsets here, scaled for min sensitivity
-  mpu.setXGyroOffset(220);
-  mpu.setYGyroOffset(76);
-  mpu.setZGyroOffset(-85);
-  mpu.setZAccelOffset(1788);
+  // Supply your own accel offsets here, scaled for min sensitivity
+  mpu.setXAccelOffset(X_OFFSET);
+  mpu.setYAccelOffset(Y_OFFSET);
+  mpu.setZAccelOffset(Z_OFFSET);
 
   // make sure it worked (returns 0 if so)
   if (devStatus == 0) {
@@ -129,7 +142,7 @@ float getJumpParam() {
   if (!dmpReady) return;
 
   // wait for MPU interrupt or extra packet(s) available
-  while (!mpuInterrupt && fifoCount < packetSize);
+  while (!mpuInterrupt && fifoCount < packetSize){};
 
   // reset interrupt flag and get INT_STATUS byte
   mpuInterrupt = false;
@@ -161,18 +174,31 @@ float getJumpParam() {
     mpu.dmpGetAccel(&aa, fifoBuffer);
     mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
+    mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
 
     // Blink LED to indicate activity
     blinkState = !blinkState;
     digitalWrite(LED_PIN, blinkState);
-
-    return getVel(aaReal.x, aaReal.y, aaReal.z);
+    
+    return getVel(aaWorld.x, aaWorld.y, aaWorld.z);
   }
 
   return -1;
 }
 
 float getVel(float x, float y, float z) {
-  //TODO Calculate Jump Strength
+  // Map acceleration of IMU to parameter of the ball.
+  x /= COUNT_PER_GRAVITY;
+  y /= COUNT_PER_GRAVITY;
+  z /= COUNT_PER_GRAVITY;
+
+  double a = sqrt(x * x + y * y + z * z);
+
+  if (a < ACCEL_THRESHOLD) {
+    return -1;
+  }
+
+  float vel = a / MAX_ACCEL * SCALE_FACTOR + MIN_VEL;
+  return vel;
 }
 
