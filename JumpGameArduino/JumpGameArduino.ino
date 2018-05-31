@@ -43,6 +43,13 @@ void dmpDataReady() {
 // ===                      INITIAL SETUP                       ===
 // ================================================================
 
+// Game related parameters
+#define LOOP_NUM 3000
+#define JUMP_THRESHOLD 1
+
+int loopCount = 0;
+float maxParam = 0;
+
 void setup() {
   // Set random seed.
   randomSeed(221);
@@ -52,11 +59,19 @@ void setup() {
 }
 
 void loop() {
-  // Send Data
-  float val = getJumpParam();
-  Serial.println(val, 5);
-  // Wait a while for the analog-to-digital converter to stabilize after the last reading as well the processing game to animate.
-  delay(2000);
+  if (loopCount < LOOP_NUM) {
+    // Send Data
+    float val = getJumpParam();
+    if (val > maxParam)
+      maxParam = val;
+    // Wait a while for the analog-to-digital converter to stabilize after the last reading as well the processing game to animate.
+    delay(1);
+  } else {
+    if (maxParam > JUMP_THRESHOLD)
+      Serial.println(maxParam, 5);
+    loopCount = 0;
+    maxParam = 0;
+  }
 }
 
 void setupIMU() {
