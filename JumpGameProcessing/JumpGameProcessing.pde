@@ -35,9 +35,9 @@ int score = 0;
 int remainingLife = defaultRemainingLife;
 
 void setup(){
-  //TODO To show initializing page before serial setup.
   size(640, 360);
-  showInitializing();
+  //TODO To show initializing page before serial setup.
+  //showInitializing();
   
   //Uncomment the following line to get information about your devices.
   //println((Object[])Serial.list());
@@ -51,8 +51,7 @@ void setup(){
   
   // TODO Make sure the DMP filter is stabled.
   // Wait a while for the DMP filter to stablize and then clear the serial.
-  delay(8000);
-  myPort.clear();
+  //myPort.clear();
 }
 
 void draw(){

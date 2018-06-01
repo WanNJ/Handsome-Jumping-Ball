@@ -48,11 +48,12 @@ void dmpDataReady() {
 #define LOOP_NUM 200
 #define ACCEL_THRESHOLD 0.25
 #define MIN_VEL 1
-#define SCALE_FACTOR 12
+#define SCALE_FACTOR 7
 
 // IMU related parameters
 #define COUNT_PER_GRAVITY 16384
 #define MAX_ACCEL 3.4641
+#define MAX_CUSTOM 2
 #define X_OFFSET 1.2575
 #define Y_OFFSET -1.2088
 #define Z_OFFSET -254.7958
@@ -197,7 +198,11 @@ float getVel(float x, float y, float z) {
     return -1;
   }
 
-  float vel = a / MAX_ACCEL * SCALE_FACTOR + MIN_VEL;
-  return vel;
+  if(a > MAX_CUSTOM)
+    return MIN_VEL + SCALE_FACTOR;
+  else {
+    float vel = (a - ACCEL_THRESHOLD) / (MAX_CUSTOM - ACCEL_THRESHOLD) * SCALE_FACTOR + MIN_VEL;
+    return vel;
+  }
 }
 
