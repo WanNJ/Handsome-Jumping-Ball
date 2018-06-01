@@ -80,9 +80,8 @@ void loop() {
   } else {
     if (maxParam > 0) {
       Serial.println(maxParam, 5);
-    } else {
-      Serial.println("Sitting still...");
     }
+    
     loopCount = 0;
     maxParam = -1;
   }

@@ -21,6 +21,7 @@ float r = 5;
 int segments = 2;
 // Relevant to the stake height
 int h = 60;
+int MIN_VEL = 1;
 
 Stake[] stakes = new Stake[segments];
 
@@ -28,30 +29,51 @@ Stake[] stakes = new Stake[segments];
 Serial myPort;      // Create object from Serial class
 String portMessage; // Data received from the serial port
 
+// User Params
+int defaultRemainingLife = 3;
+int score = 0;
+int remainingLife = defaultRemainingLife;
+
 void setup(){
-  println((Object[])Serial.list());
+  //TODO To show initializing page before serial setup.
+  size(640, 360);
+  showInitializing();
+  
+  //Uncomment the following line to get information about your devices.
+  //println((Object[])Serial.list());
   //change the index to match your port.
   String portName = Serial.list()[3];
   myPort = new Serial(this, portName, 9600);
   // Don't generate a serialEvent() unless you get a newline character.
   myPort.bufferUntil('\n');
   
-  size(640, 360);
   initGame();
+  
+  // TODO Make sure the DMP filter is stabled.
+  // Wait a while for the DMP filter to stablize and then clear the serial.
+  delay(8000);
+  myPort.clear();
 }
 
-void draw(){  
+void draw(){
   // Background
   noStroke();
   fill(0, 15);
   rect(0, 0, width, height);
   
+  displayScore();
+  
+  // Ball stay still if it's on stake[0] and its velocity is 0.
+  // TODO To solve the serialEvent() causing interrupt issue(remaininglife is always decreasing).
+  // if(!(ball.isOnStake(stakes[0]) && ball.velocity.x < MIN_VEL))
   ball.move();
   
-  ball.checkWallCollision(stakes[0]);
+  if(ball.checkWallCollision(stakes[0]))
+    remainingLife--;
   // Check against all the stake
   for (int i = 0; i < segments; i++){
-    ball.checkStakeCollision(stakes[i], stakes[0]);
+    if(ball.checkStakeCollision(stakes[i], stakes[0]))
+      remainingLife--;
   }
 
   // Draw stakes
@@ -63,6 +85,26 @@ void draw(){
   if(ball.isOnStake(stakes[1])) {
     continueGame();
   }
+  
+  checkLives();
+}
+
+void showInitializing() {
+  println("Initializing...");
+  // Show initail page
+  noStroke();
+  fill(0);
+  rect(0, 0, width, height);
+  textSize(25);
+  fill(200);
+  text("Initializing...", 250, 170);
+}
+
+void displayScore() {
+  textSize(15);
+  fill(200);
+  text("Score: " + score, 290, 30);
+  text("Lives:  " + remainingLife, 290, 50);
 }
 
 // Override the method.
@@ -105,7 +147,16 @@ void continueGame() {
     float nextWidth = random(minStakeWidth, maxStakeWidth);
     float nextX = random(width/2 + nextWidth/2, width - nextWidth/2);
     stakes[1].set(nextX, height - h, nextWidth);
+    // Score 1 points.
+    score++;
   } else {
     ball.reset(stakes[0]);
+  }
+}
+
+void checkLives() {
+  if(remainingLife < 1) {
+    remainingLife = 3;
+    score = 0;
   }
 }
